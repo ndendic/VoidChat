@@ -5,12 +5,16 @@ from monsterui import *
 from modules.shared.templates import page_template
 from config import Settings
 from .chat import chat_section
+from modules.public.components.navbar import Navbar
+
 config = Settings()
 rt = APIRouter()
 
 
 
 @rt("/")
-@page_template(title=config.app_name + " - Chat with Void")
 def get(request):
-    return chat_section()
+    return Title(config.app_name + " - Chat with Void"), Body(
+        Navbar(),
+        chat_section()
+    )

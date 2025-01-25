@@ -19,30 +19,25 @@ def ChatInput():
             autofocus=True,
             hx_swap_oob='true'
         )
+
 def chat_section():
-    return Main(
-        cls="flex flex-col items-center justify-center h-screen px-4 bg-background"
-    )(
-        Card(
-            cls="w-full max-w-4xl mx-auto bg-card"
-        )(
-            CardBody(hx_ext="ws",  # Enable WebSocket extension
-                    ws_connect="/ws"  # WebSocket connection endpoint   
-                )(
-                # Chat messages container
+    return Div(cls="min-h-[calc(100vh-4rem)] flex flex-col" )(
+        CardContainer(cls="flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+            CardBody(
+                hx_ext="ws",
+                ws_connect="/ws",
+                cls="flex-1 flex flex-col overflow-hidden"  
+            )(
                 Div(
                     id="chat-messages",
-                    cls="flex flex-col space-y-2 overflow-y-auto min-h-[500px] max-h-[700px] mb-4",
-                    
+                    cls="flex-1 flex flex-col space-y-2 overflow-y-auto px-2",
                 ),
-                # Chat input form with WebSocket
                 Form(
-                    cls="flex gap-2",
+                    cls="flex gap-2 mt-4",
                     id="chat-form",
-                    ws_send=True,  # Enable WebSocket sending
+                    ws_send=True,
                 )(
                     ChatInput(),
-
                 )
             )
         )
@@ -76,7 +71,6 @@ def format_user_message(content: str,idx:str):
             cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
         )
     )
-
 
 async def on_connect(send):
     print("Client connected")
@@ -112,13 +106,11 @@ async def websocket_endpoint(msg: str, send):
 def chat_page():
     return Container(
         Div(
-            # This will be the messages container
             id="chat-messages",
             cls="flex flex-col space-y-2 overflow-y-auto max-h-[600px]"
         ),
-        # Your input form below
         Form(
             Input(name="message", placeholder="Type your message..."),
-            hx_ws="connect:/ws"  # WebSocket connection
+            hx_ws="connect:/ws"  
         )
     )
