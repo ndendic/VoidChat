@@ -1,6 +1,7 @@
 import json
 import uuid
 import subprocess
+from datetime import datetime, timezone
 
 from config import Settings
 
@@ -10,14 +11,63 @@ from fasthtml.core import APIRouter
 from monsterui.all import *
 from modules.shared.templates import app_template
 
-from .models import ChatMessage, Chat
-from .agent import agent, Result
+from .models import ChatMessage, Chat, save_chat_messages
+from .agent import agent, HTMLResult
 from uuid import UUID
 
 config = Settings()
 rt = APIRouter()
 messages = []
 
+def component_to_html(component):
+    cmd = f"""
+    from fasthtml.common import *
+    from monsterui.all import *
+    print(to_xml({component}))
+    """
+
+    result = subprocess.run(["python","-c", cmd],capture_output=True,text=True)
+    return result.stdout.strip()
+
+def ai_chunk(content: str,idx:str):
+    return Span(render_md(content),id=f"chat-content-{idx}", cls="p-4 bg-primary/10 rounded-lg")
+
+def aim(text: str, code: str, idx:str):
+    components = [render_md(text)]
+    # if code:
+    #     components.append(
+    #         Div(cls="bg")(
+    #             DivFullySpaced(TabContainer(
+    #                 Li(A('Preview',    href='#'),    cls='uk-active'),
+    #                 Li(A('Code', href='#')),
+    #                 uk_switcher=f'connect: #component-{idx}; animation: uk-animation-fade',
+    #                 alt=True,
+    #                 cls="max-w-80"
+    #         )),
+    #         Ul(id=f"component-{idx}", cls="uk-switcher")(
+    #                 Li(Div(NotStr(code))),
+    #                 Li(render_md(f"```python\n{html2ft(code)}\n```"))
+    #             )
+    #         )
+    #     )
+    return Div( *components, cls="p-4 bg-primary/10 rounded-lg")
+
+def ai_message(text: str, code: str, idx:str):
+    return Div(aim(text, code, idx),cls="max-w-[80%] mb-4",id="chat-messages",hx_swap_oob="beforeend")
+    # return Div(render_md(text),cls="max-w-[80%] mb-4",id="chat-messages",hx_swap_oob="beforeend")
+
+def um(content: str,idx:str):
+    return DivRAligned(P(
+            content,
+            id=idx,
+            cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
+        ))
+def user_message(content: str,idx:str):
+    return Div(cls="flex justify-end w-full mb-4",id="chat-messages",hx_swap_oob="beforeend")(
+        um(content,idx), 
+        Loading((LoadingT.dots, LoadingT.md), htmx_indicator=True)
+    )
+    
 def ChatInput():
     return Input(
             id="msg",
@@ -29,15 +79,42 @@ def ChatInput():
             # hx_swap_oob='true'
         )
 
+def preview_component(chat):
+    if chat.component_html:
+        return Div(cls="col-span-3")(
+                DivFullySpaced(TabContainer(
+                    Li(A('Preview',    href='#'),    cls='uk-active'),
+                    Li(A('Code', href='#')),
+                    uk_switcher=f'connect: #preview; animation: uk-animation-fade',
+                    alt=True,
+                cls="max-w-80"
+            )),
+            Ul(id=f"preview", cls="uk-switcher")(
+                Li(Div(NotStr(chat.component_html))),
+                Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```"))
+            )
+        )
+    else:
+        return None
+
 def chat_section(request, chat):
-    return Div(cls="min-h-[calc(100vh-4rem)] flex flex-col" )(
-        CardContainer(cls="flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+    mesgs = ChatMessage.filter(chat_id=chat.id, sorting_field="created_at", sort_direction="asc")
+    messages = []
+    for msg in mesgs:
+        if msg.role == "user":            
+            messages.append(um(msg.content, msg.id))
+        else:
+            messages.append(aim(msg.content, msg.component_html, msg.id))
+
+    return Grid(cols=5,cls="min-h-[calc(100vh-4rem)] flex flex-col", id="chat-container")(
+        CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
             CardBody(
                 hx_ext="ws",
-                ws_connect="/ws",
+                ws_connect=f"/ws/{chat.id}",
                 cls="flex-1 flex flex-col overflow-hidden"  
             )(
                 Div(
+                    *messages,
                     id="chat-messages",
                     cls="flex-1 flex flex-col space-y-2 overflow-y-auto px-2",
                 ),
@@ -49,61 +126,9 @@ def chat_section(request, chat):
                     ChatInput(),
                 )
             )
-        )
-    )
-
-def component_to_html(component):
-    execute = f"""
-    from fasthtml.common import *
-    from monsterui.all import *
-    print(to_xml({component}))
-    """
-
-    result = subprocess.run(["python","-c", execute],capture_output=True,text=True)
-    return result.stdout.strip()
-
-def format_ai_message(content: Result, idx:str):
-    labels = []
-    # if content.doc_ids:
-    #     labels = [Label(source, cls="text-primary bg-primary/10 rounded-full") for source in content.doc_ids]
-    components = [render_md(content.explanation)]
-    # components.append(Div(NotStr(content.component))) if content.component else None
-    components.append(Div(NotStr(component_to_html(content.component)))) if content.component else None
-    components.append(render_md(f"```python\n{html2ft(content.component)}\n```")) if content.component else None    
-    # components.extend(labels) if labels else None
-    return Div(
-        Div(
-            *components,  # Safely unpack the components list
-            cls="p-4 bg-primary/10 rounded-lg"
         ),
-        cls="max-w-[80%] mb-4",
-        id="chat-messages",
-        hx_swap_oob="beforeend"
+        preview_component(chat)      
     )
-
-def ai_chunk(content: str,idx:str):
-    return Span(render_md(content),id=f"chat-content-{idx}", cls="p-4 bg-primary/10 rounded-lg")
-
-def format_user_message(content: str,idx:str):
-    return Div(
-        cls="flex justify-end w-full mb-4",
-        id="chat-messages",
-        hx_swap_oob="beforeend"
-    )(
-        P(
-            content,
-            id=idx,
-            cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
-        )
-    )
-
-async def on_connect(send):
-    print("Client connected")
-    # result = Result(answer="Hello! I'm Void, ready to help you build web applications.", component_code="")
-    # await send(format_ai_message(result, idx="welcome-chunk"))
-
-async def on_disconnect():
-    print("Client disconnected")
 
 
 @rt.get("/new-chat")
@@ -114,6 +139,12 @@ async def new_chat(request):
     chat.save()
     return RedirectResponse(f"/chat/{chat.id}", status_code=303)
 
+async def on_connect(websocket):
+    print("Client connected")
+
+async def on_disconnect(websocket):
+    print("Client disconnected")
+
 @rt("/chat/{chat_id}")
 @app_template("Chat", requieres="authenticated")
 def page(request):
@@ -121,24 +152,28 @@ def page(request):
     chat = Chat.get(id=UUID(chat_id))
     return chat_section(request, chat)
 
-@rt.ws("/ws", conn=on_connect, disconn=on_disconnect)
-async def websocket_endpoint(msg: str, send):
-    try:        
+@rt.ws("/ws/{chat_id}", conn=on_connect, disconn=on_disconnect)
+async def websocket_endpoint(msg: str, websocket: WebSocket, send):
+    try:
+        chat = Chat.get(id=UUID(websocket.path_params['chat_id']))                    
         # Send back user message first
-        await send(format_user_message(msg, idx="user-message"))
+        await send(user_message(msg, idx="user-message"))
         await send(ChatInput())
-        ai_message_id = f"chat-content-{uuid.uuid4()}"
-
-        # await send(format_ai_message("", idx=ai_message_id))
         # Get and send AI response
-        # async with agent.run_stream(msg) as result:
-        #     async for message in result.stream_text():  
-        #         print(f"Streaming chunk to {ai_message_id}: {message[:50]}...")
-        #         await send(ai_chunk(message, idx=ai_message_id))
-        result = await agent.run(msg)
+        history = chat.get_messages()
+        result = await agent.run(msg, message_history=history)
+        await send(ai_message(result.data.explanation,result.data.component,idx=str(uuid.uuid4())))
+        save_chat_messages(result.new_messages_json(), chat.id)
         print(f"Agent Result: {result.data} \n Type: {type(result.data)}")
-        await send(format_ai_message(result.data,idx=ai_message_id))
+        if result.data.component:
+            chat.component_html = result.data.component
+            chat.save()
         
     except Exception as e:
         print(f"Error: {str(e)}")
-        await send(format_ai_message(f"I apologize, but I encountered an error: {str(e)}", idx=str(uuid.uuid4())))
+        # Make sure to include all required fields for HTMLResult
+        await send(ai_message(
+            f"I apologize, but I encountered an error: {str(e)}",
+            None,
+            idx=str(uuid.uuid4())
+        ))

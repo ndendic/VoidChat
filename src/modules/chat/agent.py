@@ -1,7 +1,7 @@
+import subprocess
+from reprlib import aRepr
 from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
-from IPython import get_ipython
-from IPython.core.interactiveshell import InteractiveShell
 from typing import Any, Optional, Tuple
 import chromadb
 import asyncio
@@ -10,7 +10,7 @@ from fasthtml.common import html2ft
 client = chromadb.PersistentClient()
 collection = client.get_or_create_collection(name="docs")
 
-class Result(BaseModel):
+class HTMLResult(BaseModel):
     """Response structure for the agent"""
     explanation: str
     # doc_ids: Optional[list[str]] = Field(description="A list of document ids that were used to answer the user's query.")
@@ -45,21 +45,27 @@ system_prompt = """You are Void, an AI assistant specialized in helping develope
     5. Do not add paths like '/path/to/image.jpg' in your response, use known web examples like 'https://picsum.photos/200/300'
     6. Include the topics you referenced in your response."""
 
-system_prompt2 = """You are Void, an AI assistant specialized in providing HTML and TailwindCSS code for web components.
+style_guide = ""
+with open(".llms/styling-guide.md", "r") as file:
+    style_guide = file.read()
 
+system_prompt2 = f"""You are UI Expert called Void, specialized in providing HTML and TailwindCSS code for web components Using MonsterUI Style guide.
+    You provide modern, reach, and beautiful UI components.
     IMPORTANT: For every user query, you MUST:
     1. ALWAYS provide the HTML output of the component code in the html field
     2. Do not add paths like '/path/to/image.jpg' in your response, use known web examples like 'https://picsum.photos/200/300'
+    3. Use the MonsterUI Style guide to style your components
+    {style_guide}
     """
 
 agent = Agent(
     'openai:gpt-4o-mini',
-    result_type=Result,
+    result_type=HTMLResult,
     retries=3,
-    system_prompt=system_prompt
+    system_prompt=system_prompt2
 )
 
-@agent.tool(retries=5)
+# @agent.tool(retries=5)
 async def search_docs(ctx: RunContext, query: str) -> dict[str, list[str]]:
     """Search the documentation for relevant information.
     
@@ -95,19 +101,15 @@ def get_html(ctx: RunContext, pre_code: str, component_code: str) -> Tuple[Optio
     """Get the HTML output of the component code"""
     try:
         # Initialize IPython shell if needed
-        shell = get_ipython() or InteractiveShell.instance()
-        # Run necessary imports
-        shell.run_cell("from monsterui.all import *")
-        shell.run_cell("from fasthtml.common import *")
-        # Execute the code
-        shell.run_cell(pre_code)
-        result = shell.run_cell(f"to_xml({component_code})")
-        
-        # Check if execution was successful
-        if result.success:
-            return result.result, None
-        else:
-            return None, str(result.error_in_exec)
+        execute = f"""
+        from fasthtml.common import *
+        from monsterui.all import *
+        {pre_code}
+        print(to_xml({component_code}))
+        """
+
+        result = subprocess.run(["python","-c", execute],capture_output=True,text=True)
+        return result.stdout.strip()
             
     except Exception as e:
         return None, str(e)
@@ -115,7 +117,7 @@ def get_html(ctx: RunContext, pre_code: str, component_code: str) -> Tuple[Optio
 
 
 
-async def get_response(query: str) -> Result:
+async def get_response(query: str) -> HTMLResult:
     """Get a response from the agent with documentation context"""
     result = await agent.run(query)
     return result.data

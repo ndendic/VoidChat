@@ -20,7 +20,7 @@ tables = [
 def user_chats(request):
     return [
         ("message-circle-code",chat.title,'/chat/'+ str(chat.id))
-        for chat in Chat.filter(user_id=json.loads(request.user).get("id"))
+        for chat in Chat.filter(user_id=json.loads(request.user).get("id"), sorting_field="created_at", sort_direction="desc")
     ]
     
 

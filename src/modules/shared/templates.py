@@ -44,7 +44,8 @@ def app_page(title, request, content):
         Div(cls="flex")(
             Sidebar(request),
             Main(
-                cls="w-3/4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4",
+                cls="ml-14 mx-auto px-4 sm:px-6 lg:px-8 py-4",
+                # cls="w-3/4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4",
             )(
                 Div(cls="grid grid-cols-1 md:grid-cols-3 gap-8", id="content")(
                     content,
