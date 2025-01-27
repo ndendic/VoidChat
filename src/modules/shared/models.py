@@ -11,7 +11,6 @@ from pydantic.json import pydantic_encoder
 from pydantic_core import PydanticUndefined
 from pydantic_core.core_schema import SerializerFunctionWrapHandler
 from sqlmodel import Field, SQLModel
-
 from modules.admin.components import ModalForm, ModelTable, table_page
 
 db = get_db_service()
@@ -98,6 +97,30 @@ class BaseTable(SQLModel):
             as_dict=as_dict,
             fields=fields,
         )
+    
+    @classmethod
+    def filter(cls,
+        sorting_field: Optional[str] = None,
+        sort_direction: str = "asc",
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        as_dict: bool = False,
+        fields: Optional[List[str]] = None,
+        exact_match: bool = True,  # This parameter is correctly defined here
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        return db.filter(
+            model=cls,
+            sorting_field=sorting_field,
+            sort_direction=sort_direction,
+            limit=limit,
+            offset=offset,
+            as_dict=as_dict,
+            fields=fields,
+            exact_match=exact_match,  # But it needs to be explicitly passed here
+            **kwargs
+        )
+
 
     @classmethod
     def table_view_data(cls, request) -> List[Dict[str, Any]]:

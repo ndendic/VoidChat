@@ -1,9 +1,9 @@
 from fasthtml.common import *
-from fasthtml.components import Uk_theme_switcher
-from monsterui import *
-from monsterui.franken import *
 from config import Settings
+from monsterui.franken import *
+from modules.shared.components.theme import theme_switcher
 config = Settings()
+
 
 def MobileDrawer():
     nav_items = [
@@ -55,26 +55,7 @@ def MobileDrawer():
     )
 
 def theme_toggle():
-    return Div(
-    Button(
-        UkIcon(icon='palette', uk_cloak=''),
-        cls='uk-icon-button uk-icon-button-small uk-icon-button-outline'
-    ),
-    Div(
-        Div('Customize', cls='uk-card-title uk-margin-medium-bottom'),
-        # Uk_theme_switcher(),
-        Uk_theme_switcher(custom_palette="""[
-            {"background": "#10b981", "key": "uk-theme-grass", "text": "Grass"},
-            {"background": "#0099AD", "key": "uk-theme-lightsky", "text": "Light Sky"},
-            {"background": "#E74D3C", "key": "uk-theme-mandarino", "text": "Mandarino"},
-            {"background": "#364049", "key": "uk-theme-calm", "text": "Calm"}
-            ]"""
-        ),
-        uk_drop="mode: click; offset: 8",
-        cls="uk-card uk-card-body uk-card-default uk-drop uk-width-large",
-    ),
-    cls='uk-inline'
-)
+    return theme_switcher()
 
 def Navbar():
     nav_items = [
@@ -115,9 +96,9 @@ def Navbar():
                         cls="text-sm font-medium transition-colors hover:text-primary",
                     ),
                     Button(
-                        "Get Started",
+                        "Register",
                         cls=ButtonT.primary,
-                        onclick="window.location.href='/pricing'",
+                        onclick="window.location.href='/auth/register'",
                     ),
                     theme_toggle(),
 

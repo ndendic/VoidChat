@@ -6,11 +6,11 @@ def PricingHeader():
     return (
         Div(
             H2(
-                "Designed for business teams like yours",
+                "Enjoy while it's still free.",
                 cls="mb-4 text-4xl tracking-tight font-extrabold",
             ),
             P(
-                "Here we focus on markets where technology, innovation, and capital can unlock long-term value and drive economic growth.",
+                "All price below are fake, we don't have any product yet.",
                 cls="mb-5 font-light sm:text-xl",
             ),
             cls="mx-auto max-w-screen-md text-center mb-8 lg:mb-12",

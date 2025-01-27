@@ -18,7 +18,8 @@ def is_htmx(request=None):
 def site_page(title, content):
     return Title(title), Body(
         Navbar(),
-        Main(cls="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12")(
+        # Main(cls="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12")(
+        Main(cls="max-w-7xl mx-auto")(
             Div(cls="grid grid-cols-1 md:grid-cols-3 gap-8")(
                 content, cls="min-h-screen bg-background font-sans antialiased"
             ),

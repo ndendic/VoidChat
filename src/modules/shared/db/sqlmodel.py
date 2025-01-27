@@ -1,10 +1,11 @@
-from typing import Any, Dict, Generator, List, Optional, Type
-from datetime import datetime, timezone
+from typing import Any, Dict, Generator, List, Optional, Type, Union, get_args, get_origin
+from datetime import datetime, timezone, date
 import sqlalchemy as sa
 
 from sqlalchemy import func, or_
 from sqlmodel import Session, SQLModel, create_engine, select
 from uuid import UUID
+from decimal import Decimal
 
 
 
@@ -102,7 +103,109 @@ class SQLModelDB(DatabaseService):
             else:
                 return results
 
-    # Add to SQLModelDB class in sqlmodel.py
+    def filter(
+        self,
+        model: Type[SQLModel],
+        sorting_field: Optional[str] = None,
+        sort_direction: str = "asc",
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        as_dict: bool = False,
+        fields: Optional[List[str]] = None,
+        exact_match: bool = True,
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        with Session(self.engine) as session:
+            # Validate that all filter fields exist in the model
+            invalid_fields = [field for field in kwargs.keys() if field not in model.__fields__]
+            if invalid_fields:
+                raise ValueError(f"Invalid fields for filtering: {', '.join(invalid_fields)}")
+
+            # Build the base query
+            if fields:
+                query = select(*[getattr(model, field) for field in fields])
+            else:
+                query = select(model)
+
+            # Add filters for each kwarg
+            for field, value in kwargs.items():
+                if value is None:
+                    query = query.filter(getattr(model, field).is_(None))
+                    continue
+
+                field_type = model.__fields__[field].annotation
+                # Get the underlying type if it's Optional
+                if get_origin(field_type) is Union:
+                    # Optional[T] is actually Union[T, None]
+                    field_type = next((t for t in get_args(field_type) if t is not type(None)), str)
+
+                if not exact_match and isinstance(value, str):
+                    query = query.filter(getattr(model, field).ilike(f"%{value}%"))
+                else:
+                    # Handle different field types
+                    if field_type in (str, Optional[str]):
+                        if exact_match:
+                            query = query.filter(getattr(model, field) == value)
+                        else:
+                            query = query.filter(getattr(model, field).ilike(f"%{value}%"))
+                    
+                    elif field_type in (int, float, Decimal, bool, Optional[int], Optional[float], Optional[Decimal], Optional[bool]):
+                        query = query.filter(getattr(model, field) == value)
+                    
+                    elif field_type in (datetime, date, Optional[datetime], Optional[date]):
+                        # Handle date/datetime range queries
+                        if isinstance(value, (list, tuple)) and len(value) == 2:
+                            start, end = value
+                            query = query.filter(
+                                getattr(model, field).between(start, end)
+                            )
+                        else:
+                            query = query.filter(getattr(model, field) == value)
+                    elif field_type is UUID:
+                        # Handle UUID fields, converting string to UUID if needed
+                        if isinstance(value, str):
+                            try:
+                                value = UUID(value)
+                            except ValueError:
+                                raise ValueError(f"Invalid UUID format for field {field}: {value}")
+                        query = query.filter(getattr(model, field) == value)
+                    
+                    elif isinstance(value, (list, tuple)):
+                        # Handle IN queries for lists
+                        query = query.filter(getattr(model, field).in_(value))
+                    
+                    else:
+                        # Default to exact match for unknown types
+                        query = query.filter(getattr(model, field) == value)
+
+            # Add sorting
+            if sorting_field:
+                if sorting_field in model.__fields__:
+                    order_field = getattr(model, sorting_field)
+                    query = query.order_by(
+                        order_field.desc()
+                        if sort_direction.lower() == "desc"
+                        else order_field
+                    )
+                else:
+                    raise ValueError(
+                        f"Sorting field '{sorting_field}' does not exist in the model."
+                    )
+            else:
+                query = query.order_by(model.id)
+
+            # Add pagination
+            if limit is not None:
+                query = query.limit(limit)
+
+            if offset is not None:
+                query = query.offset(offset)
+
+            results = session.exec(query).all()
+
+            if as_dict:
+                return [result.dict() for result in results]
+            return results
 
     def get_record(
         self, model: Type[SQLModel], id: Any, alt_key: str = None

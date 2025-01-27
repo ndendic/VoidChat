@@ -13,9 +13,9 @@ config = Settings()
 tiers = [
         {
             "id": "524123",
-            "name": "Starter",
-            "price": "$49",
-            "description": "Perfect for small projects and individual developers",
+            "name": "True Starter",
+            "price": "Free",
+            "description": "Start here if you still suck",
             "features": [
                 "All core features",
                 "Up to 5 team members",
@@ -28,9 +28,9 @@ tiers = [
         },
         {
             "id": "pro",
-            "name": "Pro",
-            "price": "$99",
-            "description": "Best for growing teams and businesses",
+            "name": "Fake Pro",
+            "price": "$0.99",
+            "description": "Best for collapsing enterprise teams and businesses",
             "features": [
                 "Everything in Starter",
                 "Up to 20 team members",
@@ -44,11 +44,11 @@ tiers = [
         },
         {
             "id": "enterprise",
-            "name": "Enterprise",
-            "price": "Custom",
-            "description": "For large organizations with custom needs",
+            "name": "Fake Enterprise",
+            "price": "Ultra Expensive",
+            "description": "Conntact us so we can take your measure",
             "features": [
-                "Everything in Pro",
+                "Everything in Fake Pro",
                 "Unlimited team members",
                 "Unlimited storage",
                 "24/7 dedicated support",

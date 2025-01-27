@@ -36,6 +36,21 @@ class DatabaseService(ABC):
         pass
 
     @abstractmethod
+    def filter(
+        self,
+        model: Type[SQLModel],
+        sorting_field: Optional[str] = None,
+        sort_direction: str = "asc",
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        as_dict: bool = False,
+        fields: Optional[List[str]] = None,
+        exact_match: bool = True,  
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        pass
+
+    @abstractmethod
     def get_record(
         self, model: Type[SQLModel], id: Any, alt_key: str = None
     ) -> Optional[SQLModel]:

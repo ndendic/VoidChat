@@ -6,6 +6,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 
 from modules.auth.models import Priviledge, Role, RolePriviledge, User
+from modules.chat.models import Chat, ChatMessage
 
 from modules.shared.models import BaseTable
 

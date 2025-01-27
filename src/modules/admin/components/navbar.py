@@ -1,7 +1,7 @@
 import json
 
 from fasthtml.common import *
-from fasthtml.components import Uk_theme_switcher
+from modules.shared.components.theme import theme_switcher
 from monsterui.franken import *
 from modules.auth.models import User
 
@@ -65,20 +65,7 @@ def avatar_dropdown(request):
     return None
 
 
-def theme_toggle():
-    return Div(
-    Button(
-        UkIcon(icon='palette', uk_cloak=''),
-        cls='uk-icon-button uk-icon-button-small uk-icon-button-outline'
-    ),
-    Div(
-        Div('Customize', cls='uk-card-title uk-margin-medium-bottom'),
-        Uk_theme_switcher(),
-        uk_drop='mode: click; offset: 8',
-        cls='uk-card uk-card-body uk-card-default uk-drop uk-width-large'
-    ),
-    cls='uk-inline'
-)
+
 def SidebarToggle():
     return Button(
         UkIcon("menu", height=20, width=20),
@@ -106,7 +93,7 @@ def TopNav(request):
         ),
         NavBarRSide(
             DivRAligned(
-                theme_toggle(),
+                theme_switcher(),
                 # Hide search on mobile                
                 avatar_dropdown(request),
                 cls="space-x-2",
@@ -192,7 +179,7 @@ def NewNav(request):
                 ),
                 # Desktop CTA buttons
                 Div(cls="hidden md:flex items-center space-x-4")(
-                    theme_toggle(),
+                    theme_switcher(),
                     Input(placeholder="Search"),
                     avatar_dropdown(request),
                 ),

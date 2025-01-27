@@ -9,6 +9,7 @@ dependencies = [
     "apswutils>=0.0.2",
     "bcrypt>=4.2.0",
     "debugpy>=1.8.9",
+    "ipython>=8.31.0",
     "logfire[sqlalchemy,starlette]>=2.11.1",
     "lucide-fasthtml>=0.0.9",
     "lxml>=5.3.0",
@@ -16,6 +17,7 @@ dependencies = [
     "mistletoe>=1.4.0",
     "monsterui>=0.0.9",
     "notion-client>=2.2.1",
+    "openai>=1.60.1",
     "psycopg2-binary>=2.9.10",
     "pydantic-ai-slim[openai]>=0.0.20",
     "pydantic-settings>=2.7.0",
@@ -28,6 +30,7 @@ dependencies = [
     "stripe>=11.3.0",
     "supabase>=2.9.1",
     "typer[all]>=0.15.1",
+    "vecs>=0.4.5",
 ]
 
 [project.scripts]

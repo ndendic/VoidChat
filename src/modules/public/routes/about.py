@@ -155,7 +155,20 @@ def ValuesSection():
 @rt("/about")
 @page_template(title=f"{config.app_name} - About")
 def get(request):
-    return Div(CompanySection(), TeamSection(), ValuesSection())
+    return Div(
+        Div(
+    Div(
+        H1('About Us', cls='text-3xl font-bold mb-4'),
+        P('There is nothing really special about us, there is only one poor guy attempting to program some stuff.', cls='text-lg'),
+        cls='bg-secondary shadow-lg rounded-lg p-10 text-center max-w-lg'
+    ),
+    cls='min-h-screen flex items-center justify-center'
+)
+
+)
+
+
+    # return Div(CompanySection(), TeamSection(), ValuesSection())
 
 
 def post(request):

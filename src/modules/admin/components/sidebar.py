@@ -2,6 +2,8 @@ from fasthtml.common import *
 from monsterui.franken import *
 from modules import *
 from modules.shared.validators import priviledged_component
+from modules.chat.models import Chat
+import json
 
 models = BaseTable.__subclasses__()
 print("Found models:", [model.__name__ for model in models])
@@ -15,25 +17,16 @@ tables = [
     if model.sidebar_item
 ]
 
-
-discoved_data = [
-    ("play-circle", "Listen Now"),
-    ("binoculars", "Browse"),
-    ("rss", "Radio"),
-]
-library_data = [
-    ("play-circle", "Playlists"),
-    ("music", "Songs"),
-    ("user", "Made for You"),
-    ("users", "Artists"),
-    ("bookmark", "Albums"),
-]
-playlists_data = [("library", "Recently Added"), ("library", "Recently Played")]
+def user_chats(request):
+    return [
+        ("message-circle-code",chat.title,'/chat/'+ str(chat.id))
+        for chat in Chat.filter(user_id=json.loads(request.user).get("id"))
+    ]
+    
 
 nav_items = [
     ("home", "Home", "/"),
     ("layout-dashboard", "Dashboard", "/dashboard"),
-    ("beaker", "Playground", "/playground"),
     ("user", "Profile", "/user/profile"),
     ("log-out", "Logout", "/auth/logout"),
 ]
@@ -178,7 +171,7 @@ def SidebarContent(request):
                 # Icon logo
                 DivCentered(
                     UkIcon(
-                        "github",
+                        "audio-waveform",
                         height=20,
                         width=20,
                         cls="m-2 flex items-center h-[40px]",
@@ -190,9 +183,7 @@ def SidebarContent(request):
                     request,
                     priviledge="admin",
                 ),
-                SidebarGroup("Discover", discoved_data, "compass"),
-                SidebarGroup("Library", library_data, "album"),
-                SidebarGroup("Playlists", playlists_data, "list"),
+                SidebarGroup("Chats", user_chats(request), "message-circle-code"),
                 cls=(NavT.primary, "space-y-3"),
             ),
             cls="sidebar-content",
@@ -222,7 +213,7 @@ def Sidebar(request):
                     NavContainer(uk_nav=True, parent=True)(
                         DivCentered(
                             UkIcon(
-                                "github",
+                                "audio-waveform",
                                 height=20,
                                 width=20,
                                 cls="m-2 flex items-center h-[40px]",
@@ -235,9 +226,7 @@ def Sidebar(request):
                             request,
                             priviledge="admin",
                         ),
-                        PanelGroup("Discover", discoved_data, "compass"),
-                        PanelGroup("Library", library_data, "album"),
-                        PanelGroup("Playlists", playlists_data, "list"),
+                        PanelGroup("Discover", user_chats(request), "chat"),
                         cls=(NavT.primary, "space-y-1"),
                     ),
                     cls="sidebar-content py-2",  # Added some padding
@@ -248,3 +237,4 @@ def Sidebar(request):
             uk_offcanvas="overlay: true",
         ),
     )
+
