@@ -1,9 +1,11 @@
+import json
+
 from fasthtml.common import *
 from monsterui.franken import *
+
 from modules import *
-from modules.shared.validators import priviledged_component
 from modules.chat.models import Chat
-import json
+from modules.shared.validators import priviledged_component
 
 models = BaseTable.__subclasses__()
 print("Found models:", [model.__name__ for model in models])
@@ -17,12 +19,17 @@ tables = [
     if model.sidebar_item
 ]
 
+
 def user_chats(request):
     return [
-        ("message-circle-code",chat.title,'/chat/'+ str(chat.id))
-        for chat in Chat.filter(user_id=json.loads(request.user).get("id"), sorting_field="created_at", sort_direction="desc")
+        ("message-circle-code", chat.title, "/chat/" + str(chat.id))
+        for chat in Chat.filter(
+            user_id=json.loads(request.user).get("id"),
+            sorting_field="created_at",
+            sort_direction="desc",
+        )
     ]
-    
+
 
 nav_items = [
     ("home", "Home", "/"),
@@ -199,7 +206,6 @@ def Sidebar(request):
             cls="!hidden lg:!flex flex-col h-screen fixed top-0 left-0 bg-background border-r border-border transition-all duration-300 hover:w-60 w-14 group z-50",
             style="overflow-x: hidden;",
         )(SidebarContent(request)),
-        
         # Offcanvas sidebar for mobile
         Div(
             Div(
@@ -237,4 +243,3 @@ def Sidebar(request):
             uk_offcanvas="overlay: true",
         ),
     )
-

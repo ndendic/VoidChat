@@ -8,7 +8,10 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.staticfiles import StaticFiles
 from modules.shared.toaster import setup_custom_toasts
 from route_collector import add_routes
-
+favicons = Favicon(
+    light_icon="/images/favicon-light.svg",
+    dark_icon="/images/favicon-dark.svg"
+)
 logfire.configure(send_to_logfire='if-token-present')
 
 middleware = [Middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(32))]
@@ -26,7 +29,7 @@ def user_auth_before(req, sess):
 beforeware = Beforeware(
     user_auth_before,
     skip=[
-        r"/favicon\.ico",
+        # r"/favicon\.ico",
         r"/assets/.*",
         r".*\.css",
         r".*\.svg",
@@ -54,6 +57,7 @@ app, rt = fast_app(
     hdrs=(
         frankenui_headers,
         custom_theme_css,
+        favicons,
         HighlightJS(langs=["python", "javascript", "html", "css"]),
     ),
     htmlkw=dict(cls="bg-surface-light dark:bg-surface-dark"),
