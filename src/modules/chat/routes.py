@@ -81,33 +81,25 @@ def ChatInput():
 
 def preview_component(chat):
     if chat.component_html:
-        return Div(cls="col-span-3")(
+        return CardContainer(cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+            Div(cls="col-span-3")(
                 DivFullySpaced(TabContainer(
                     Li(A('Preview',    href='#'),    cls='uk-active'),
                     Li(A('Code', href='#')),
-                    uk_switcher=f'connect: #preview; animation: uk-animation-fade',
-                    alt=True,
+                    uk_switcher='connect: #preview; animation: uk-animation-fade',
+                    alt=False,
                 cls="max-w-80"
             )),
-            Ul(id=f"preview", cls="uk-switcher")(
+            Ul(id="preview", cls="uk-switcher p-4")(
                 Li(Div(NotStr(chat.component_html))),
                 Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```"))
             )
-        )
+        ))
     else:
         return None
-
-def chat_section(request, chat):
-    mesgs = ChatMessage.filter(chat_id=chat.id, sorting_field="created_at", sort_direction="asc")
-    messages = []
-    for msg in mesgs:
-        if msg.role == "user":            
-            messages.append(um(msg.content, msg.id))
-        else:
-            messages.append(aim(msg.content, msg.component_html, msg.id))
-
-    return Grid(cols=5,cls="min-h-[calc(100vh-4rem)] flex flex-col", id="chat-container")(
-        CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+    
+def chatbox(messages, chat):
+    return CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
             CardBody(
                 hx_ext="ws",
                 ws_connect=f"/ws/{chat.id}",
@@ -126,7 +118,18 @@ def chat_section(request, chat):
                     ChatInput(),
                 )
             )
-        ),
+        )
+
+def chat_section(request, chat):
+    mesgs = ChatMessage.filter(chat_id=chat.id, sorting_field="created_at", sort_direction="asc")
+    messages = []
+    for msg in mesgs:
+        if msg.role == "user":            
+            messages.append(um(msg.content, msg.id))
+        else:
+            messages.append(aim(msg.content, msg.component_html, msg.id))
+    return Grid(cols=5,cls="min-h-[calc(100vh-4rem)] flex flex-col", id="chat-container")(
+        chatbox(messages, chat),
         preview_component(chat)      
     )
 
