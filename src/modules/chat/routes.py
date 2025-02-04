@@ -62,6 +62,7 @@ def um(content: str,idx:str):
             id=idx,
             cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
         ))
+
 def user_message(content: str,idx:str):
     return Div(cls="flex justify-end w-full mb-4",id="chat-messages",hx_swap_oob="beforeend")(
         um(content,idx), 
@@ -82,24 +83,24 @@ def ChatInput():
 def preview_component(chat):
     if chat.component_html:
         return CardContainer(cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
-            Div(cls="col-span-3")(
-                DivFullySpaced(TabContainer(
-                    Li(A('Preview',    href='#'),    cls='uk-active'),
-                    Li(A('Code', href='#')),
-                    uk_switcher='connect: #preview; animation: uk-animation-fade',
-                    alt=False,
-                cls="max-w-80"
+            DivFullySpaced(TabContainer(
+                Li(A('Preview',    href='#'),    cls='uk-active'),
+                Li(A('Code', href='#')),
+                uk_switcher='connect: #preview; animation: uk-animation-fade',
+                alt=False,
+                cls="w-full px-2"
             )),
             Ul(id="preview", cls="uk-switcher p-4")(
                 Li(Div(NotStr(chat.component_html))),
                 Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```"))
             )
-        ))
+        )
     else:
         return None
     
 def chatbox(messages, chat):
     return CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+            TabContainer(Span(chat.title,cls=TextT.primary +"px-4 py-1")),
             CardBody(
                 hx_ext="ws",
                 ws_connect=f"/ws/{chat.id}",
