@@ -17,12 +17,14 @@ rt = APIRouter()
 @rt("/dashboard")
 @app_template("Dashboard", requieres="authenticated")
 def page(request):
-    return Form(
-        cls="flex gap-2 mt-4",
-        id="chat-form",
-        hx_get="/new-chat",
-    )(
-        ChatInput(),
+    return Container(cls="flex items-center justify-center min-h-[80vh] w-full")(
+            Form(
+                cls="w-full max-w-2xl",  # Limits form width and centers it
+                id="chat-form",
+                hx_get="/new-chat",
+            )(
+                ChatInput(),
+            )
     )
 
 
