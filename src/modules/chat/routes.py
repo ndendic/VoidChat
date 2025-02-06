@@ -82,17 +82,19 @@ def ChatInput():
 
 def preview_component(chat):
     if chat.component_html:
-        return CardContainer(cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+        return CardContainer(id="preview-container", name="preview-container", cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
             DivFullySpaced(TabContainer(
                 Li(A('Preview',    href='#'),    cls='uk-active'),
-                Li(A('Code', href='#')),
+                Li(A('FastTags', href='#')),
+                Li(A('HTML', href='#')),
                 uk_switcher='connect: #preview; animation: uk-animation-fade',
                 alt=False,
                 cls="w-full px-2"
             )),
             Ul(id="preview", cls="uk-switcher p-4")(
                 Li(Div(NotStr(chat.component_html))),
-                Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```"))
+                Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```")),
+                Li(render_md(f"```html\n{chat.component_html}\n```")),
             )
         )
     else:
@@ -141,7 +143,7 @@ async def new_chat(request):
     chat.title = "New Chat"
     chat.user_id = UUID(json.loads(request.user).get("id"))
     chat.save()
-    return RedirectResponse(f"/chat/{chat.id}", status_code=303)
+    return RedirectResponse(f"/chat/{chat.id}")
 
 async def on_connect(websocket):
     print("Client connected")
