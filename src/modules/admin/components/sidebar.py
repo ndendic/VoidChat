@@ -232,7 +232,7 @@ def Sidebar(request):
                             request,
                             priviledge="admin",
                         ),
-                        PanelGroup("Discover", user_chats(request), "chat"),
+                        PanelGroup("Chats", user_chats(request), "chat"),
                         cls=(NavT.primary, "space-y-1"),
                     ),
                     cls="sidebar-content py-2",  # Added some padding

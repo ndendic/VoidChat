@@ -190,16 +190,19 @@ async def websocket_endpoint(msg: str, websocket: WebSocket, send):
         # Get and send AI response
         history = chat.get_messages()
         result = await agent.run(msg, message_history=history)
-        await send(ai_message(result.data.explanation,result.data.component,idx=str(uuid.uuid4())))
+        await send(ai_message(result.data.explanation, result.data.component, idx=str(uuid.uuid4())))
         save_chat_messages(result.new_messages_json(), chat.id)
         print(f"Agent Result: {result.data} \n Type: {type(result.data)}")
+        
+        # Update the preview if we have a component
         if result.data.component:
             chat.component_html = result.data.component
             chat.save()
+            # Send an out-of-band update for the preview container
+            await send(preview_component(chat))
         
     except Exception as e:
         print(f"Error: {str(e)}")
-        # Make sure to include all required fields for HTMLResult
         await send(ai_message(
             f"I apologize, but I encountered an error: {str(e)}",
             None,
