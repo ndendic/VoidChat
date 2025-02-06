@@ -52,8 +52,8 @@ def aim(text: str, code: str, idx:str):
     #     )
     return Div( *components, cls="p-4 bg-primary/10 rounded-lg")
 
-def ai_message(text: str, code: str, idx:str):
-    return Div(aim(text, code, idx),cls="max-w-[80%] mb-4",id="chat-messages",hx_swap_oob="beforeend")
+def ai_message(text: str, code: str, idx: str):
+    return Div(aim(text, code, idx), cls="max-w-[80%] mb-4", id="chat-messages", hx_swap_oob="beforeend")
     # return Div(render_md(text),cls="max-w-[80%] mb-4",id="chat-messages",hx_swap_oob="beforeend")
 
 def um(content: str,idx:str):
@@ -63,9 +63,9 @@ def um(content: str,idx:str):
             cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
         ))
 
-def user_message(content: str,idx:str):
-    return Div(cls="flex justify-end w-full mb-4",id="chat-messages",hx_swap_oob="beforeend")(
-        um(content,idx), 
+def user_message(content: str, idx: str):
+    return Div(cls="flex justify-end w-full mb-4", id="chat-messages", hx_swap_oob="beforeend")(
+        um(content, idx),
         Loading((LoadingT.dots, LoadingT.md), htmx_indicator=True)
     )
     
@@ -82,7 +82,7 @@ def ChatInput():
 
 def preview_component(chat):
     if chat.component_html:
-        return CardContainer(id="preview-container", name="preview-container", cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
+        return CardContainer(id="preview-container", name="preview-container",hx_swap_oob="outerHTML", cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
             DivFullySpaced(TabContainer(
                 Li(A('Preview',    href='#'),    cls='uk-active'),
                 Li(A('FastTags', href='#')),
@@ -102,26 +102,48 @@ def preview_component(chat):
     
 def chatbox(messages, chat):
     return CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
-            TabContainer(Span(chat.title,cls=TextT.primary +"px-4 py-1")),
-            CardBody(
-                hx_ext="ws",
-                ws_connect=f"/ws/{chat.id}",
-                cls="flex-1 flex flex-col overflow-hidden"  
+        Script("""
+            document.body.addEventListener('htmx:wsAfterMessage', function(evt) {
+                const messagesDiv = document.getElementById('chat-messages');
+                if (messagesDiv) {
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
+            });
+        """),
+        TabContainer(
+            Span(
+                chat.title,
+                id="chat-title",
+                cls=TextT.primary + " px-4 py-1 hover:underline decoration-dashed decoration-2 underline-offset-4 hover:focus-within:no-underline focus-within:bg-primary/10",
+                contenteditable="plaintext-only",
+                hx_post=f"/chat/{chat.id}/update-title",
+                hx_trigger="blur",
+                hx_swap="none",
+                _onkeydown="if(event.key === 'Enter') {event.preventDefault();this.blur()}",
+                _onfocus="this.value=this.textContent",
+                _onblur="this.textContent = this.textContent.trim()",
+                hx_vals="js:{title: document.getElementById('chat-title').textContent.trim()}"
+            )
+        ),
+        CardBody(
+            hx_ext="ws",
+            ws_connect=f"/ws/{chat.id}",
+            cls="flex-1 flex flex-col overflow-hidden"  
+        )(
+            Div(
+                *messages,
+                id="chat-messages",
+                cls="flex-1 flex flex-col space-y-2 overflow-y-auto px-2",
+            ),
+            Form(
+                cls="flex gap-2 mt-4",
+                id="chat-form",
+                ws_send=True,
             )(
-                Div(
-                    *messages,
-                    id="chat-messages",
-                    cls="flex-1 flex flex-col space-y-2 overflow-y-auto px-2",
-                ),
-                Form(
-                    cls="flex gap-2 mt-4",
-                    id="chat-form",
-                    ws_send=True,
-                )(
-                    ChatInput(),
-                )
+                ChatInput(),
             )
         )
+    )
 
 def chat_section(request, chat):
     mesgs = ChatMessage.filter(chat_id=chat.id, sorting_field="created_at", sort_direction="asc")
@@ -183,3 +205,23 @@ async def websocket_endpoint(msg: str, websocket: WebSocket, send):
             None,
             idx=str(uuid.uuid4())
         ))
+
+@rt("/chat/{chat_id}/update-title")
+async def update_title(request):
+    # Get the data from the request body
+    form_data = await request.form()
+    title = form_data.get('title')
+    print(f"Received title update request with title: {title}")
+    
+    chat_id = request.path_params.get("chat_id")
+    chat = Chat.get(id=UUID(chat_id))
+    print(f"Found chat: {chat}")
+    
+    if title and title.strip():  # Only update if title is not empty
+        chat.title = title.strip()
+        chat.save()
+        print(f"Updated chat title to: {chat.title}")
+    else:
+        print("Title was empty or invalid")
+    
+    return ""  # Empty response since we're using hx-swap="none"
