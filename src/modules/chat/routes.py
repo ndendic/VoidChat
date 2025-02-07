@@ -32,25 +32,19 @@ def component_to_html(component):
 def ai_chunk(content: str,idx:str):
     return Span(render_md(content),id=f"chat-content-{idx}", cls="p-4 bg-primary/10 rounded-lg")
 
-def aim(text: str, code: str, idx:str):
+def aim(text: str, code: str, idx: str):
     components = [render_md(text)]
-    # if code:
-    #     components.append(
-    #         Div(cls="bg")(
-    #             DivFullySpaced(TabContainer(
-    #                 Li(A('Preview',    href='#'),    cls='uk-active'),
-    #                 Li(A('Code', href='#')),
-    #                 uk_switcher=f'connect: #component-{idx}; animation: uk-animation-fade',
-    #                 alt=True,
-    #                 cls="max-w-80"
-    #         )),
-    #         Ul(id=f"component-{idx}", cls="uk-switcher")(
-    #                 Li(Div(NotStr(code))),
-    #                 Li(render_md(f"```python\n{html2ft(code)}\n```"))
-    #             )
-    #         )
-    #     )
-    return Div( *components, cls="p-4 bg-primary/10 rounded-lg")
+    if code:
+        preview_label = A(
+            "preview",
+            href="#",
+            cls="ml-2 text-sm text-blue-600 underline cursor-pointer",
+            hx_get=f"/chat/preview/{idx}",
+            hx_target="#preview-container",
+            hx_swap="outerHTML"
+        )
+        components.append(preview_label)
+    return Div(*components, cls="p-4 bg-primary/10 rounded-lg")
 
 def ai_message(text: str, code: str, idx: str):
     return Div(aim(text, code, idx), cls="max-w-[80%] mb-4", id="chat-messages", hx_swap_oob="beforeend")
@@ -82,19 +76,28 @@ def ChatInput():
 
 def preview_component(chat):
     if chat.component_html:
-        return CardContainer(id="preview-container", name="preview-container",hx_swap_oob="outerHTML", cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
-            DivFullySpaced(TabContainer(
-                Li(A('Preview',    href='#'),    cls='uk-active'),
-                Li(A('FastTags', href='#')),
-                Li(A('HTML', href='#')),
-                uk_switcher='connect: #preview; animation: uk-animation-fade',
-                alt=False,
-                cls="w-full px-2"
-            )),
-            Ul(id="preview", cls="uk-switcher p-4")(
+        return CardContainer(
+            id="preview-container",
+            name="preview-container",
+            cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]"
+        )(
+            DivFullySpaced(
+                TabContainer(
+                    Li(A('Preview', href='#'), cls='uk-active'),
+                    Li(A('FastTags', href='#')),
+                    Li(A('HTML', href='#')),
+                    uk_switcher='connect: #preview; animation: uk-animation-fade',
+                    alt=False,
+                    cls="w-full px-2"
+                )
+            ),
+            Ul(
+                id="preview",
+                cls="uk-switcher p-4"
+            )(
                 Li(Div(NotStr(chat.component_html))),
                 Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```")),
-                Li(render_md(f"```html\n{chat.component_html}\n```")),
+                Li(render_md(f"```html\n{chat.component_html}\n```"))
             )
         )
     else:
@@ -228,3 +231,39 @@ async def update_title(request):
         print("Title was empty or invalid")
     
     return ""  # Empty response since we're using hx-swap="none"
+
+@rt.get("/chat/preview/{msg_id}")
+def preview_message(request):
+    """
+    Return a preview pane for the AI message identified by msg_id,
+    displaying its component code.
+    """
+    msg_id = request.path_params.get("msg_id")
+    # Retrieve the AI message by its ID.
+    ai_msg = ChatMessage.get(id=UUID(msg_id))
+    if ai_msg and ai_msg.component_html:
+         return CardContainer(
+             id="preview-container",
+             name="preview-container",
+             cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]"
+         )(
+             DivFullySpaced(
+                 TabContainer(
+                     Li(A('Preview', href='#'), cls='uk-active'),
+                     Li(A('FastTags', href='#')),
+                     Li(A('HTML', href='#')),
+                     uk_switcher='connect: #preview; animation: uk-animation-fade',
+                     alt=False,
+                     cls="w-full px-2"
+                 )
+             ),
+             Ul(
+                 id="preview",
+                 cls="uk-switcher p-4"
+             )(
+                 Li(Div(NotStr(ai_msg.component_html))),
+                 Li(render_md(f"```python\n{html2ft(ai_msg.component_html)}\n```")),
+                 Li(render_md(f"```html\n{ai_msg.component_html}\n```"))
+             )
+         )
+    return ""
