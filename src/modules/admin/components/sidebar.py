@@ -40,13 +40,18 @@ nav_items = [
 
 
 def SidebarButton(icon, text, href="#"):
+    extra_attrs = {}
+    if href.startswith("/chat/"):
+        # Extract the chat id from the href
+        chat_id = href.split("/")[2]
+        extra_attrs = {"id": f"sidebar-chat-{chat_id}"}
     return Li(
-        A(
-            DivLAligned(
-                UkIcon(icon, height=20, width=20, cls="text-muted-foreground"),
-                P(text, cls="sidebar-text text-muted-foreground"),
+            A(
+                DivLAligned(
+                    UkIcon(icon, height=20, width=20, cls="text-muted-foreground"),
+                P(text, cls="sidebar-text text-muted-foreground", **extra_attrs),                
                 cls="space-x-2",
-            ),
+            ),            
             href=href + "#",
             hx_boost="true",
             hx_target="#content",
@@ -190,7 +195,11 @@ def SidebarContent(request):
                     request,
                     priviledge="admin",
                 ),
-                SidebarGroup("Chats", user_chats(request), "message-circle-code"),
+                SidebarGroup(
+                    "Chats",
+                    [("plus", "New Chat", "/new-chat")] + user_chats(request),
+                    "message-circle-code"
+                ),
                 cls=(NavT.primary, "space-y-3"),
             ),
             cls="sidebar-content",

@@ -49,7 +49,7 @@ def app_page(title, request, content):
             )(
                 Div(cls="grid grid-cols-1 md:grid-cols-3 gap-8", id="content")(
                     content,
-                    cls="min-h-screen bg-background font-sans antialiased",
+                    cls="min-h-[calc(100vh-6rem)] overflow-auto bg-background font-sans antialiased",
                 )
             ),
         ),

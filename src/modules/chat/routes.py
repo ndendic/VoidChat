@@ -14,6 +14,7 @@ from modules.shared.templates import app_template
 from .models import ChatMessage, Chat, save_chat_messages
 from .agent import agent, HTMLResult
 from uuid import UUID
+from modules.admin.components.sidebar import SidebarButton
 
 config = Settings()
 rt = APIRouter()
@@ -75,11 +76,11 @@ def ChatInput():
         )
 
 def preview_component(chat):
-    if chat.component_html:
-        return CardContainer(
-            id="preview-container",
-            name="preview-container",
-            cls="col-span-3 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]"
+    html = chat.component_html if chat.component_html else "<p>Your AI has not generated any components yet.</p>"
+    return CardContainer(
+        id="preview-container",
+        name="preview-container",
+        cls="col-span-3 flex flex-col m-4 max-h-[calc(100vh-6rem)] overflow-auto"
         )(
             DivFullySpaced(
                 TabContainer(
@@ -95,13 +96,12 @@ def preview_component(chat):
                 id="preview",
                 cls="uk-switcher p-4"
             )(
-                Li(Div(NotStr(chat.component_html))),
-                Li(render_md(f"```python\n{html2ft(chat.component_html)}\n```")),
-                Li(render_md(f"```html\n{chat.component_html}\n```"))
+                Li(Div(NotStr(html))),
+                Li(render_md(f"```python\n{html2ft(html)}\n```")),
+                Li(render_md(f"```html\n{html}\n```"))
             )
         )
-    else:
-        return None
+   
     
 def chatbox(messages, chat):
     return CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
@@ -168,7 +168,12 @@ async def new_chat(request):
     chat.title = "New Chat"
     chat.user_id = UUID(json.loads(request.user).get("id"))
     chat.save()
-    return RedirectResponse(f"/chat/{chat.id}")
+    new_sidebar_item = SidebarButton("message-circle-code", chat.title, f"/chat/{chat.id}")
+    from fasthtml.common import to_xml
+    new_sidebar_html = to_xml(new_sidebar_item)
+    response = HTMLResponse(new_sidebar_html)
+    response.headers["HX-Redirect"] = f"/chat/{chat.id}"
+    return response
 
 async def on_connect(websocket):
     print("Client connected")
@@ -217,20 +222,20 @@ async def update_title(request):
     # Get the data from the request body
     form_data = await request.form()
     title = form_data.get('title')
-    print(f"Received title update request with title: {title}")
-    
     chat_id = request.path_params.get("chat_id")
     chat = Chat.get(id=UUID(chat_id))
-    print(f"Found chat: {chat}")
     
-    if title and title.strip():  # Only update if title is not empty
+    if title and title.strip():
         chat.title = title.strip()
         chat.save()
-        print(f"Updated chat title to: {chat.title}")
-    else:
-        print("Title was empty or invalid")
     
-    return ""  # Empty response since we're using hx-swap="none"
+    # Return an out-of-band swap that updates the sidebar chat title
+    return P(
+        chat.title,
+        id=f"sidebar-chat-{chat.id}",
+        cls="sidebar-text text-muted-foreground",
+        hx_swap_oob="outerHTML"
+    )
 
 @rt.get("/chat/preview/{msg_id}")
 def preview_message(request):
@@ -266,4 +271,12 @@ def preview_message(request):
                  Li(render_md(f"```html\n{ai_msg.component_html}\n```"))
              )
          )
+    return ""
+
+@rt.get("/chat/{chat_id}/delete")
+async def delete_chat(request):
+    chat_id = request.path_params.get("chat_id")
+    chat = Chat.get(id=UUID(chat_id))
+    if chat:
+        chat.delete()  # Ensure your Chat model has a delete() method or implement your deletion logic here.
     return ""
