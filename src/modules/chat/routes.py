@@ -34,18 +34,18 @@ def ai_chunk(content: str,idx:str):
     return Span(render_md(content),id=f"chat-content-{idx}", cls="p-4 bg-primary/10 rounded-lg")
 
 def aim(text: str, code: str, idx: str):
-    components = [render_md(text)]
+    components = [render_md(text, class_map_mods={'p': 'mb-1'})]
     if code:
-        preview_label = A(
+        preview_label = Label(
             "preview",
-            href="#",
-            cls="ml-2 text-sm text-blue-600 underline cursor-pointer",
+            cls="cursor-pointer bg-primary/50",
             hx_get=f"/chat/preview/{idx}",
             hx_target="#preview-container",
             hx_swap="outerHTML"
         )
         components.append(preview_label)
     return Div(*components, cls="p-4 bg-primary/10 rounded-lg")
+
 
 def ai_message(text: str, code: str, idx: str):
     return Div(aim(text, code, idx), cls="max-w-[80%] mb-4", id="chat-messages", hx_swap_oob="beforeend")
@@ -114,19 +114,26 @@ def chatbox(messages, chat):
             });
         """),
         TabContainer(
-            Span(
-                chat.title,
-                id="chat-title",
-                cls=TextT.primary + " px-4 py-1 hover:underline decoration-dashed decoration-2 underline-offset-4 hover:focus-within:no-underline focus-within:bg-primary/10",
-                contenteditable="plaintext-only",
-                hx_post=f"/chat/{chat.id}/update-title",
-                hx_trigger="blur",
-                hx_swap="none",
-                _onkeydown="if(event.key === 'Enter') {event.preventDefault();this.blur()}",
-                _onfocus="this.value=this.textContent",
-                _onblur="this.textContent = this.textContent.trim()",
-                hx_vals="js:{title: document.getElementById('chat-title').textContent.trim()}"
-            )
+            DivFullySpaced(
+                Span(
+                    chat.title,
+                    id="chat-title",
+                    cls=TextT.primary + " px-4 py-1 hover:underline decoration-dashed decoration-2 underline-offset-4 hover:focus-within:no-underline focus-within:bg-primary/10",
+                    contenteditable="plaintext-only",
+                    hx_post=f"/chat/{chat.id}/update-title",
+                    hx_trigger="blur",
+                    hx_swap="none",
+                    _onkeydown="if(event.key === 'Enter') {event.preventDefault();this.blur()}",
+                    _onfocus="this.value=this.textContent",
+                    _onblur="this.textContent = this.textContent.trim()",
+                    hx_vals="js:{title: document.getElementById('chat-title').textContent.trim()}"
+                ),
+                UkIconLink(
+                    href=f"/chat/{chat.id}/delete",
+                    icon="trash",
+                    cls="text-red-500 hover:text-red-600"
+                )
+            ),
         ),
         CardBody(
             hx_ext="ws",
@@ -276,7 +283,5 @@ def preview_message(request):
 @rt.get("/chat/{chat_id}/delete")
 async def delete_chat(request):
     chat_id = request.path_params.get("chat_id")
-    chat = Chat.get(id=UUID(chat_id))
-    if chat:
-        chat.delete()  # Ensure your Chat model has a delete() method or implement your deletion logic here.
-    return ""
+    Chat.delete_record(id=UUID(chat_id))
+    return RedirectResponse(url="/dashboard")

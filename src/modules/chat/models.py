@@ -27,7 +27,7 @@ class Chat(BaseTable, table=True):
     user_id: UUID = Field(foreign_key="user.id")
 
     # Relationships
-    messages: List["ChatMessage"] = Relationship(back_populates="chat")
+    messages: List["ChatMessage"] = Relationship(back_populates="chat", cascade_delete=True)
     component_html: Optional[str] = Field(sa_type=sqlalchemy.Text, default=None)
     component_ft: Optional[str] = Field(sa_type=sqlalchemy.Text, default=None)
     # Admin UI metadata
