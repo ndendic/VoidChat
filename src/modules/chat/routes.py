@@ -12,7 +12,8 @@ from monsterui.all import *
 from modules.shared.templates import app_template
 
 from .models import ChatMessage, Chat, save_chat_messages
-from .agent import agent, HTMLResult
+from .html_agent import agent
+from .coder_agent import agent as coder_agent, CodeResult
 from uuid import UUID
 from modules.admin.components.sidebar import SidebarButton
 
@@ -20,20 +21,10 @@ config = Settings()
 rt = APIRouter()
 messages = []
 
-def component_to_html(component):
-    cmd = f"""
-    from fasthtml.common import *
-    from monsterui.all import *
-    print(to_xml({component}))
-    """
-
-    result = subprocess.run(["python","-c", cmd],capture_output=True,text=True)
-    return result.stdout.strip()
-
 def ai_chunk(content: str,idx:str):
     return Span(render_md(content),id=f"chat-content-{idx}", cls="p-4 bg-primary/10 rounded-lg")
 
-def aim(text: str, code: str, idx: str):
+def aim(text: str, code: str, idx: str, html_output: str = None):
     components = [render_md(text, class_map_mods={'p': 'mb-1'})]
     if code:
         preview_label = Label(
@@ -47,8 +38,8 @@ def aim(text: str, code: str, idx: str):
     return Div(*components, cls="p-4 bg-primary/10 rounded-lg")
 
 
-def ai_message(text: str, code: str, idx: str):
-    return Div(aim(text, code, idx), cls="max-w-[80%] mb-4", id="chat-messages", hx_swap_oob="beforeend")
+def ai_message(text: str, code: str, idx: str, html_output: str = None):
+    return Div(aim(text, code, idx, html_output), cls="max-w-[80%] mb-4", id="chat-messages", hx_swap_oob="beforeend")
     # return Div(render_md(text),cls="max-w-[80%] mb-4",id="chat-messages",hx_swap_oob="beforeend")
 
 def um(content: str,idx:str):
@@ -72,11 +63,11 @@ def ChatInput():
             cls="flex-1",
             required=True,
             autofocus=True,
-            # hx_swap_oob='true'
         )
 
 def preview_component(chat):
     html = chat.component_html if chat.component_html else "<p>Your AI has not generated any components yet.</p>"
+    ft_code = chat.component_ft if chat.component_ft else "<p>Your AI has not generated any components yet.</p>"
     return CardContainer(
         id="preview-container",
         name="preview-container",
@@ -97,12 +88,11 @@ def preview_component(chat):
                 cls="uk-switcher p-4"
             )(
                 Li(Div(NotStr(html))),
-                Li(render_md(f"```python\n{html2ft(html)}\n```")),
+                Li(render_md(f"```python\n{ft_code}\n```")),
                 Li(render_md(f"```html\n{html}\n```"))
             )
         )
    
-    
 def chatbox(messages, chat):
     return CardContainer(cls="col-span-2 flex-1 flex flex-col m-4 max-h-[calc(100vh-6rem)]")(
         Script("""
@@ -169,12 +159,24 @@ def chat_section(request, chat):
     )
 
 
-@rt.get("/new-chat")
+@rt("/new-chat")
 async def new_chat(request):
+    form_data = await request.form()
+    initial_message = form_data.get("msg", "")
+    print(f"Initial Message: {initial_message}")
+    print(f"Form Data: {form_data}")
     chat = Chat()
     chat.title = "New Chat"
     chat.user_id = UUID(json.loads(request.user).get("id"))
     chat.save()
+    if initial_message:
+        # Save the initial user message
+        user_msg = ChatMessage(
+            chat_id=chat.id,
+            content=initial_message,
+            role="user"
+        )
+        user_msg.save()
     new_sidebar_item = SidebarButton("message-circle-code", chat.title, f"/chat/{chat.id}")
     from fasthtml.common import to_xml
     new_sidebar_html = to_xml(new_sidebar_item)
@@ -196,26 +198,35 @@ def page(request):
     return chat_section(request, chat)
 
 @rt.ws("/ws/{chat_id}", conn=on_connect, disconn=on_disconnect)
-async def websocket_endpoint(msg: str, websocket: WebSocket, send):
+async def websocket_endpoint(msg: str, chat_id: str, send):
     try:
-        chat = Chat.get(id=UUID(websocket.path_params['chat_id']))                    
-        # Send back user message first
+        chat = Chat.get(id=UUID(chat_id))
+        # Send back the user message in the UI
         await send(user_message(msg, idx="user-message"))
+        # Reset the chat input by sending a new one
         await send(ChatInput())
-        # Get and send AI response
+        # Get the message history for context
         history = chat.get_messages()
-        result = await agent.run(msg, message_history=history)
-        await send(ai_message(result.data.explanation, result.data.component, idx=str(uuid.uuid4())))
+        # Get the AI response using the coder_agent
+        result = await coder_agent.run(msg, message_history=history)
+        # Send back the AI-generated explanation and code message
+        await send(ai_message(
+            result.data.explanation,
+            result.data.python_code,
+            idx=str(uuid.uuid4()),
+            html_output=result.data.html_output
+        ))
         save_chat_messages(result.new_messages_json(), chat.id)
         print(f"Agent Result: {result.data} \n Type: {type(result.data)}")
         
-        # Update the preview if we have a component
-        if result.data.component:
-            chat.component_html = result.data.component
+        # If components are generated, update the preview pane
+        if result.data.python_code or result.data.html_output:
+            chat.component_ft = result.data.python_code if result.data.python_code else ""
+            chat.component_html = result.data.html_output if result.data.html_output else ""
             chat.save()
-            # Send an out-of-band update for the preview container
+            # Send an out-of-band HTML update for the preview pane
             await send(preview_component(chat))
-        
+    
     except Exception as e:
         print(f"Error: {str(e)}")
         await send(ai_message(

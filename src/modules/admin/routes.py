@@ -21,7 +21,7 @@ def page(request):
             Form(
                 cls="w-full max-w-2xl",  # Limits form width and centers it
                 id="chat-form",
-                hx_get="/new-chat",
+                hx_post="/new-chat",
             )(
                 ChatInput(),
             )

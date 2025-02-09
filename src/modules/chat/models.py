@@ -62,7 +62,7 @@ class Chat(BaseTable, table=True):
                 message_dict = {
                     "parts": [{
                         "part_kind": "text",
-                        "content": f"{row.content} {row.component_html}",
+                        "content": f"{row.content} {row.component_html} {row.component_ft}",
                     }],
                     "kind": "response",
                     "timestamp": row.created_at.isoformat()
@@ -92,6 +92,7 @@ class ChatMessage(BaseTable, table=True):
     chat_id: UUID = Field(foreign_key="chat.id")
     chat: Chat = Relationship(back_populates="messages")
     component_html: Optional[str] = Field(sa_type=sqlalchemy.Text, default=None)
+    component_ft: Optional[str] = Field(sa_type=sqlalchemy.Text, default=None)
 
     # Admin UI metadata
     display_name: ClassVar[str] = "Chat Message"
@@ -113,14 +114,23 @@ def convert_messages_to_chat_records(json_str: str, chat_id: UUID) -> List[ChatM
     for item in data:
         if item["kind"] == "response":
             for part in item["parts"]:
-                if part["part_kind"] == "tool-call":
-                    # Parse the nested args_json string
-                    args = json.loads(part["args"]["args_json"])
-                    
+                if part["part_kind"] == "tool-call" and "args" in part:
+                    # Handle tool-call responses with args_dict
+                    args = part.get("args", {}).get("args_dict", {})
                     messages.append(ChatMessage(
                         chat_id=chat_id,
-                        content=args["explanation"],  # Extract explanation as content
-                        component_html=args["component"],  # Extract component as component_html
+                        content=args.get("explanation", ""),
+                        component_html=args.get("html_output", ""),
+                        component_ft=args.get("python_code", ""),
+                        role="model"
+                    )) if args.get("html_output") or args.get("python_code") else None
+                elif part["part_kind"] == "text":
+                    # Handle simple text responses
+                    messages.append(ChatMessage(
+                        chat_id=chat_id,
+                        content=part.get("content", ""),
+                        component_html=None,
+                        component_ft=None,
                         role="model"
                     ))
         
@@ -132,6 +142,7 @@ def convert_messages_to_chat_records(json_str: str, chat_id: UUID) -> List[ChatM
                         chat_id=chat_id,
                         content=part["content"],
                         component_html=None,
+                        component_ft=None,
                         role="user"
                     ))
     
