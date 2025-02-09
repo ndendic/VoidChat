@@ -198,35 +198,27 @@ def page(request):
     return chat_section(request, chat)
 
 @rt.ws("/ws/{chat_id}", conn=on_connect, disconn=on_disconnect)
-async def websocket_endpoint(msg: str, chat_id: str, send):
+async def websocket_endpoint(msg: str, websocket: WebSocket, send):
     try:
-        chat = Chat.get(id=UUID(chat_id))
-        # Send back the user message in the UI
+        chat = Chat.get(id=UUID(websocket.path_params['chat_id']))                    
+        # Send back user message first
         await send(user_message(msg, idx="user-message"))
-        # Reset the chat input by sending a new one
         await send(ChatInput())
-        # Get the message history for context
         history = chat.get_messages()
-        # Get the AI response using the coder_agent
+
         result = await coder_agent.run(msg, message_history=history)
-        # Send back the AI-generated explanation and code message
-        await send(ai_message(
-            result.data.explanation,
-            result.data.python_code,
-            idx=str(uuid.uuid4()),
-            html_output=result.data.html_output
-        ))
+        await send(ai_message(result.data.explanation, result.data.python_code, idx=str(uuid.uuid4()), html_output=result.data.html_output))
         save_chat_messages(result.new_messages_json(), chat.id)
         print(f"Agent Result: {result.data} \n Type: {type(result.data)}")
         
-        # If components are generated, update the preview pane
+        # Update the preview if we have a component
         if result.data.python_code or result.data.html_output:
             chat.component_ft = result.data.python_code if result.data.python_code else ""
             chat.component_html = result.data.html_output if result.data.html_output else ""
             chat.save()
-            # Send an out-of-band HTML update for the preview pane
+            # Send an out-of-band update for the preview container
             await send(preview_component(chat))
-    
+        
     except Exception as e:
         print(f"Error: {str(e)}")
         await send(ai_message(
