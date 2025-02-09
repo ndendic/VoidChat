@@ -4,7 +4,7 @@ from fasthtml.common import *
 from fasthtml.core import APIRouter
 from fasthtml.svg import *
 from monsterui import *
-from monsterui.franken import *
+from monsterui.all import *
 from monsterui.franken import Grid as Grd
 
 from modules.shared.models import BaseTable
@@ -24,6 +24,7 @@ def page(request):
                 hx_post="/new-chat",
             )(
                 ChatInput(),
+                P(Loading(htmx_indicator=True),"Working on it...",cls="mt-2 htmx-indicator")
             )
     )
 

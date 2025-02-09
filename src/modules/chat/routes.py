@@ -46,13 +46,12 @@ def um(content: str,idx:str):
     return DivRAligned(P(
             content,
             id=idx,
-            cls="p-4 bg-secondary/30 rounded-lg text-lg max-w-[80%]"
+            cls="p-4 bg-secondary/30 rounded-lg max-w-[80%]"
         ))
 
 def user_message(content: str, idx: str):
     return Div(cls="flex justify-end w-full mb-4", id="chat-messages", hx_swap_oob="beforeend")(
         um(content, idx),
-        Loading((LoadingT.dots, LoadingT.md), htmx_indicator=True)
     )
     
 def ChatInput():
@@ -170,13 +169,13 @@ async def new_chat(request):
     chat.user_id = UUID(json.loads(request.user).get("id"))
     chat.save()
     if initial_message:
-        # Save the initial user message
-        user_msg = ChatMessage(
-            chat_id=chat.id,
-            content=initial_message,
-            role="user"
-        )
-        user_msg.save()
+        result = await coder_agent.run(initial_message)
+        save_chat_messages(result.new_messages_json(), chat.id)
+        if result.data.python_code or result.data.html_output:
+            chat.component_ft = result.data.python_code if result.data.python_code else ""
+            chat.component_html = result.data.html_output if result.data.html_output else ""
+            chat.save()
+
     new_sidebar_item = SidebarButton("message-circle-code", chat.title, f"/chat/{chat.id}")
     from fasthtml.common import to_xml
     new_sidebar_html = to_xml(new_sidebar_item)
@@ -209,8 +208,6 @@ async def websocket_endpoint(msg: str, websocket: WebSocket, send):
         result = await coder_agent.run(msg, message_history=history)
         await send(ai_message(result.data.explanation, result.data.python_code, idx=str(uuid.uuid4()), html_output=result.data.html_output))
         save_chat_messages(result.new_messages_json(), chat.id)
-        print(f"Agent Result: {result.data} \n Type: {type(result.data)}")
-        
         # Update the preview if we have a component
         if result.data.python_code or result.data.html_output:
             chat.component_ft = result.data.python_code if result.data.python_code else ""
