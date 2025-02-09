@@ -12,8 +12,8 @@ from monsterui.all import *
 from modules.shared.templates import app_template
 
 from .models import ChatMessage, Chat, save_chat_messages
-from .html_agent import agent
 from .coder_agent import agent as coder_agent, CodeResult
+from .chat_agent import propose_title
 from uuid import UUID
 from modules.admin.components.sidebar import SidebarButton
 
@@ -165,7 +165,7 @@ async def new_chat(request):
     print(f"Initial Message: {initial_message}")
     print(f"Form Data: {form_data}")
     chat = Chat()
-    chat.title = "New Chat"
+    chat.title = await propose_title(initial_message)
     chat.user_id = UUID(json.loads(request.user).get("id"))
     chat.save()
     if initial_message:

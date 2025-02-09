@@ -12,29 +12,15 @@ class CodeResult(BaseModel):
     python_code: Optional[str] = Field(description="The Python FastHTML/MonsterUI code for the component")
     html_output: Optional[str] = Field(description="The HTML output of the component code")
 
-style_guide = ""
-with open(".llms/MonsterUI-examples.txt", "r") as file:
-    style_guide = file.read()
-
-system_prompt = f"""You are UI Expert called Void, specialized in python code for web components Using MonsterUI guide.
-    You provide modern, reach, and beautiful UI components.
-    IMPORTANT: Remember - your components will be rendered to user so for every user query, you MUST:
-    1. ALWAYS provide the EXECUTABLE python code that ends with print(to_xml(<YOUR COMPONENT>))
-    2. always use elements from following imports:
-        from monsterui.all import *
-        from fasthtml.common import *
-    3. Use the MonsterUI docs guide to style your components
-    4. Do not add paths like '/path/to/image.jpg' in your response, use known web examples like 'https://picsum.photos/200/300'
-    5. ALWAYS provide the HTML output of the component code in the html field and use to_xml from fasthtml.common to convert the component to html
-    MONSTERUI EXAMPLES: 
-    {style_guide}
-    """
+sp = ""
+with open(".llms/monsterui_agent_instructions.md", "r") as file:
+    sp = file.read()
 
 agent = Agent(
     'google-gla:gemini-2.0-flash',
     result_type=CodeResult,
     retries=5,
-    system_prompt=system_prompt
+    system_prompt=sp
 )
 
 

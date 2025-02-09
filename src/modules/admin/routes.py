@@ -13,19 +13,29 @@ from .components.dashboard import dashboard_page
 from modules.chat.routes import ChatInput
 rt = APIRouter()
 
-
 @rt("/dashboard")
 @app_template("Dashboard", requieres="authenticated")
 def page(request):
     return Container(cls="flex items-center justify-center min-h-[80vh] w-full")(
-            Form(
-                cls="w-full max-w-2xl",  # Limits form width and centers it
-                id="chat-form",
-                hx_post="/new-chat",
-            )(
+        Form(
+            cls="w-full max-w-2xl",
+            id="chat-form",
+            hx_post="/new-chat",
+            hx_on_htmx_send="document.getElementById('chat-input-container').classList.add('hidden')",
+            hx_on_htmx_after_on_load="document.getElementById('chat-input-container').classList.remove('hidden')"
+        )(
+            Div(
                 ChatInput(),
-                P(Loading(htmx_indicator=True),"Working on it...",cls="mt-2 htmx-indicator")
+                id="chat-input-container"
+            ),
+            P(
+                Div(
+                    Loading(htmx_indicator=True),
+                    Span("Working on it...", cls="ml-2"),
+                    cls="flex items-center justify-center mt-2 htmx-indicator"
+                )
             )
+        )
     )
 
 
