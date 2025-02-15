@@ -32,9 +32,9 @@ class Chat(BaseTable, table=True):
     component_ft: Optional[str] = Field(sa_type=sqlalchemy.Text, default=None)
     # Admin UI metadata
     display_name: ClassVar[str] = "Chat"
-    sidebar_icon: ClassVar[str] = "chat"
-    table_view_fields: ClassVar[List[str]] = ["title", "messages", "created_at"]
-    detail_page_fields: ClassVar[List[str]] = ["title", "messages", "created_at"]
+    sidebar_icon: ClassVar[str] = "message-square"
+    table_view_fields: ClassVar[List[str]] = ["title", "created_at"]
+    detail_page_fields: ClassVar[List[str]] = ["title", "created_at"]
     field_groups: ClassVar[dict[str, List[str]]] = {
         "Basic Info": ["title", "messages"],
         "Timestamps": ["created_at", "updated_at"]
@@ -96,11 +96,11 @@ class ChatMessage(BaseTable, table=True):
 
     # Admin UI metadata
     display_name: ClassVar[str] = "Chat Message"
-    sidebar_icon: ClassVar[str] = "message"
-    table_view_fields: ClassVar[List[str]] = ["content", "role", "chat"]
-    detail_page_fields: ClassVar[List[str]] = ["content", "role", "chat"]
+    sidebar_icon: ClassVar[str] = "message-square-code"
+    table_view_fields: ClassVar[List[str]] = ["content", "role", "chat_id"]
+    detail_page_fields: ClassVar[List[str]] = ["content", "role", "chat_id"]
     field_groups: ClassVar[dict[str, List[str]]] = {
-        "Message Info": ["content", "role", "chat"],
+        "Message Info": ["content", "role", "chat_id"],
         "Timestamps": ["created_at", "updated_at"]
     }
 

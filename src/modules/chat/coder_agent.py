@@ -15,11 +15,13 @@ class CodeResult(BaseModel):
 sp = ""
 with open(".llms/monsterui_agent_instructions.md", "r") as file:
     sp = file.read()
+with open(".llms/MonsterUI-ctx.txt", "r") as file:
+    sp += "FULL MonsterUI DOCUMENTATION:\n\n" + file.read()
 
 agent = Agent(
     'google-gla:gemini-2.0-flash',
     result_type=CodeResult,
-    retries=5,
+    retries=15,
     system_prompt=sp
 )
 

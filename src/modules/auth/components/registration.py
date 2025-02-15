@@ -9,7 +9,7 @@ def registration_page():
     left = Div(
         cls="col-span-1 hidden flex-col justify-between bg-zinc-900 p-8 text-white lg:flex"
     )(
-        Div(cls=(TextT.bold, TextT.default))(config.app_name),
+        Div(cls=(TextT.bold, TextT.normal))(config.app_name),
         Blockquote(cls="space-y-2")(
             P(cls=TextT.lg)(
                 '"This library has saved me countless hours of work and helped me deliver stunning designs to my clients faster than ever before."'
@@ -26,7 +26,7 @@ def registration_page():
             Div(cls="space-y-6 w-[350px]")(
                 Div(cls="flex flex-col space-y-2 text-center")(
                     H3("Create an account"),
-                    P(cls=TextFont.muted_sm)(
+                    P(cls=(TextT.muted, TextT.sm))(
                         "Pick your favorite way to authenticate with us"
                     ),
                 ),
@@ -62,7 +62,7 @@ def registration_page():
                         ),
                         href="/auth/oauth/google",
                     ),
-                    DividerSplit("Or continue with", cls=TextFont.muted_sm),
+                    DividerSplit("Or continue with", cls=(TextT.muted, TextT.sm)),
                     Input(
                         placeholder="name@example.com",
                         name="email",
@@ -83,7 +83,7 @@ def registration_page():
                         # disabled=True,
                     ),
                 ),
-                P(cls=(TextFont.muted_sm, "text-center"))(
+                P(cls=((TextT.muted, TextT.sm), "text-center"))(
                     "By clicking continue, you agree to our ",
                     A(
                         cls="underline underline-offset-4 hover:text-primary",

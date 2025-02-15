@@ -8,7 +8,7 @@ def forgot_pass_page():
     left = Div(
         cls="col-span-1 hidden flex-col justify-between bg-zinc-900 p-8 text-white lg:flex"
     )(
-        Div(cls=(TextT.bold, TextT.default))(config.app_name),
+        Div(cls=(TextT.bold, TextT.normal))(config.app_name),
         Blockquote(cls="space-y-2")(
             P(cls=TextT.lg)(
                 '"Secure account recovery made simple - get back to what matters most."'
@@ -28,7 +28,7 @@ def forgot_pass_page():
             Div(cls=f"space-y-6 w-[350px]")(
                 Div(cls="flex flex-col space-y-2 text-center")(
                     H3("Password Recovery"),
-                    P(cls=TextFont.muted_sm)(
+                    P(cls=(TextT.muted, TextT.sm))(
                         "Enter your email address and we'll send you a One Time Password"
                     ),
                 ),
@@ -45,7 +45,7 @@ def forgot_pass_page():
                         cls=(ButtonT.primary, "w-full"),
                     ),
                     DividerLine(),
-                    P(cls=(TextFont.muted_sm, "text-center"))(
+                    P(cls=((TextT.muted, TextT.sm), "text-center"))(
                         "Remember your password? ",
                         A(
                             cls="underline underline-offset-4 hover:text-primary",

@@ -18,15 +18,14 @@ hotkeys = [
 
 
 def NavSpacedLi(t, s=None, href="#", is_content=True):
-    return Li(
-        A(
-            DivFullySpaced(P(t), P(s, cls=TextFont.muted_sm)),
-            href=href + "#",
-            hx_boost="true" if is_content else "false",
-            hx_target="#content",
-            hx_swap_oob=True,
-        )
+    return A(
+        DivFullySpaced(P(t,cls=(TextT.muted,TextT.sm)), P(s)),
+        href=href + "#",
+        hx_boost="true" if is_content else "false",
+        hx_target="#content",
+        hx_swap_oob=True,
     )
+    
 
 
 def Avatar(
@@ -80,21 +79,20 @@ nav_items = [
     ("Playground", "/playground"),
 ]
 def TopNav(request):
-    return NavBarContainer(
-        NavBarLSide(
-            NavBarNav(
+    return Header(DivFullySpaced(
+        DivLAligned(
+            DivLAligned(
                 SidebarToggle(),  # Mobile toggle button
                 # Hide navigation items on mobile
-                NavBarNav(
+                DivLAligned(
                     *[NavSpacedLi(item[0], href=item[1]) for item in nav_items],
-                    cls="hidden lg:flex items-center ml-16",  # Hide on mobile, show on desktop
                 ),
-            )
+            ),
+            cls="hidden lg:flex items-center ml-16",  # Hide on mobile, show on desktop
         ),
-        NavBarRSide(
+        DivRAligned(
             DivRAligned(
                 theme_switcher(),
-                # Hide search on mobile                
                 avatar_dropdown(request),
                 cls="space-x-2",
             ),
@@ -102,7 +100,7 @@ def TopNav(request):
         ),
         # Reduce padding on mobile
         cls="sticky top-0 border-b border-border px-2 lg:px-4 z-100 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-    )
+    ))
 
 
 

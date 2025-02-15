@@ -2100,6 +2100,23 @@ wheels = [
 ]
 
 [[package]]
+name = "rizaio"
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1c/db/9e8b297b7011adae3646695d16b412e76770c79b7dbd9c77696545c6a2ae/rizaio-0.8.0.tar.gz", hash = "sha256:26ab94263eb98ee0865657a1646a83685dff572ebeadcb18652ba731c77fa8b1", size = 100964 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/8f/ed397bae26d45ffa55e82d50c5e97953938d13cfcf454509ba61e29d8a58/rizaio-0.8.0-py3-none-any.whl", hash = "sha256:2aa24c693e866face6dc5a9523aac868fc76833d90f12342e2d9cbdb50ea4097", size = 88321 },
+]
+
+[[package]]
 name = "rsa"
 version = "4.9"
 source = { registry = "https://pypi.org/simple" }
@@ -2488,6 +2505,7 @@ dependencies = [
     { name = "pytest-asyncio" },
     { name = "python-fasthtml" },
     { name = "resend" },
+    { name = "rizaio" },
     { name = "ruff" },
     { name = "sqlmodel" },
     { name = "stripe" },
@@ -2524,6 +2542,7 @@ requires-dist = [
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
     { name = "python-fasthtml", specifier = ">=0.11.0" },
     { name = "resend", specifier = ">=2.4.0" },
+    { name = "rizaio", specifier = ">=0.8.0" },
     { name = "ruff", specifier = ">=0.7.3" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
     { name = "stripe", specifier = ">=11.3.0" },

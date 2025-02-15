@@ -172,7 +172,7 @@ def HeroSection():
                 ),
                 P(
                     config.app_description,
-                    cls=TextFont.muted_lg + " mt-6",
+                    cls=(TextT.muted, TextT.lg) + " mt-6",
                 ),
                 Form(
                     Div(

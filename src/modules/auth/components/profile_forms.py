@@ -35,7 +35,7 @@ def AvatarUploader(user_data):
             # Current avatar preview
             Div(cls="flex flex-col items-center gap-4")(
                 current_avatar,
-                P("Click avatar to change profile picture", cls=TextFont.muted_sm),
+                P("Click avatar to change profile picture", cls=(TextT.muted, TextT.sm)),
             ),
             # Upload form with preview
             Form(
@@ -59,7 +59,7 @@ def AvatarUploader(user_data):
 
 
 def HelpText(c):
-    return P(c, cls=TextFont.muted_sm)
+    return P(c, cls=(TextT.muted, TextT.sm))
 
 
 def heading():
@@ -67,7 +67,7 @@ def heading():
         H2("Settings"),
         P(
             "Manage your account settings and set e-mail preferences.",
-            cls=TextFont.muted_lg,
+            cls=(TextT.muted, TextT.lg),
         ),
         DividerSplit(),
     )
@@ -165,7 +165,7 @@ def account_form():
             HelpText("Your date of birth is used to calculate your age."),
         ),
         Div(cls="space-y-2")(
-            LabelUkSelect(
+            LabelSelect(
                 *Options(
                     "Select a language",
                     "English",

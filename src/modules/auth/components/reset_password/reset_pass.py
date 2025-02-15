@@ -8,7 +8,7 @@ def reset_pass_page():
     left = Div(
         cls="col-span-1 hidden flex-col justify-between bg-zinc-900 p-8 text-white lg:flex"
     )(
-        Div(cls=(TextT.bold, TextT.default))(config.app_name),
+        Div(cls=(TextT.bold, TextT.normal))(config.app_name),
         Blockquote(cls="space-y-2")(
             P(cls=TextT.lg)(
                 '"A strong password is random, long, and unique. Never reuse passwords across multiple accounts."'
@@ -28,7 +28,7 @@ def reset_pass_page():
             Div(cls=f"space-y-6 w-[350px]")(
                 Div(cls="flex flex-col space-y-2 text-center")(
                     H3("Create New Password"),
-                    P(cls=TextFont.muted_sm)(
+                    P(cls=(TextT.muted, TextT.sm))(
                         "Your new password must be different from previously used passwords"
                     ),
                 ),
@@ -51,7 +51,7 @@ def reset_pass_page():
                         cls=(ButtonT.primary, "w-full"),
                     ),
                     DividerLine(),
-                    P(cls=(TextFont.muted_sm, "text-center"))(
+                    P(cls=((TextT.muted, TextT.sm), "text-center"))(
                         "Remember your password? ",
                         A(
                             cls="underline underline-offset-4 hover:text-primary",

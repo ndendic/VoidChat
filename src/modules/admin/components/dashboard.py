@@ -8,7 +8,7 @@ from monsterui.franken import *
 from monsterui.franken import Grid as Grd
 
 def InfoCard(title, value, change):
-    return Div(Card(Div(H3(value), P(change, cls=TextFont.muted_sm)), header=H4(title)))
+    return Div(Card(Div(H3(value), P(change, cls=(TextT.muted, TextT.sm))), header=H4(title)))
 
 
 rev = InfoCard("Total Revenue", "$45,231.89", "+20.1% from last month")
@@ -22,7 +22,7 @@ def AvatarItem(name, email, amount):
     return Div(cls="flex items-center")(
         DiceBearAvatar(name, 9, 9),
         Div(cls="ml-4 space-y-1")(
-            P(name, cls=TextFont.bold_sm), P(email, cls=TextFont.muted_sm)
+            P(name, cls=(TextT.bold,TextT.sm)), P(email, cls=(TextT.muted,TextT.sm))
         ),
         Div(amount, cls="ml-auto font-medium"),
     )
@@ -42,7 +42,7 @@ recent_sales = Card(
         ]
     ),
     header=Div(
-        H3("Recent Sales"), P("You made 265 sales this month.", cls=TextFont.muted_sm)
+        H3("Recent Sales"), P("You made 265 sales this month.", cls=(TextT.muted,TextT.sm))
     ),
     cls="col-span-3",
 )
@@ -52,7 +52,7 @@ teams = [["Alicia Koch"], ["Acme Inc", "Monster Inc."], ["Create a Team"]]
 
 opt_hdrs = ["Personal", "Team", ""]
 
-team_dropdown = UkSelect(
+team_dropdown = Select(
     Optgroup(label="Personal Account")(Option(A("Alicia Koch"))),
     Optgroup(label="Teams")(Option(A("Acme Inc")), Option(A("Monster Inc."))),
     Option(A("Create a Team")),
