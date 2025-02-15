@@ -26,7 +26,15 @@ def NavSpacedLi(t, s=None, href="#", is_content=True):
         hx_swap_oob=True,
     )
     
-
+def NavCloseLi(t, s=None, href="#", is_content=True):
+    return Li(A(
+        DivFullySpaced(P(t,cls=(TextT.muted,TextT.sm)), P(s)),
+        href=href + "#",
+        hx_boost="true" if is_content else "false",
+        hx_target="#content",
+        hx_swap_oob=True,
+        cls=ButtonT.ghost,
+    ))
 
 def Avatar(
     url,
@@ -57,7 +65,7 @@ def avatar_dropdown(request):
                 else DiceBearAvatar("Destiny", 8, 8),
                 DropDownNavContainer(
                     NavHeaderLi(user.full_name, NavSubtitle(user.email)),
-                    *[NavSpacedLi(*hk) for hk in hotkeys],
+                    *[NavCloseLi(*hk) for hk in hotkeys],
                 ),
                 cls="hidden lg:block"
             )

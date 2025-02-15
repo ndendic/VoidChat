@@ -5,7 +5,6 @@ from fasthtml.common import *
 from monsterui.all import *
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.staticfiles import StaticFiles
 from modules.shared.toaster import setup_custom_toasts
 from route_collector import add_routes
 favicons = Favicon(
