@@ -87,28 +87,32 @@ nav_items = [
     ("Playground", "/playground"),
 ]
 def TopNav(request):
-    return Header(DivFullySpaced(
-        DivLAligned(
-            DivLAligned(
-                SidebarToggle(),  # Mobile toggle button
-                # Hide navigation items on mobile
+    return Header(
+            cls="sticky top-0 z-50 w-full border-b border-border px-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            # cls="sticky top-0 z-50 border-b border-border px-2 lg:px-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        )(
+            DivFullySpaced(
                 DivLAligned(
-                    *[NavSpacedLi(item[0], href=item[1]) for item in nav_items],
+                    DivLAligned(
+                        SidebarToggle(),  # Mobile toggle button
+                    # Hide navigation items on mobile
+                    DivLAligned(
+                        *[NavSpacedLi(item[0], href=item[1]) for item in nav_items],
+                    ),
                 ),
+                cls="hidden lg:flex items-center ml-16",  # Hide on mobile, show on desktop
             ),
-            cls="hidden lg:flex items-center ml-16",  # Hide on mobile, show on desktop
-        ),
-        DivRAligned(
             DivRAligned(
-                theme_switcher(),
-                avatar_dropdown(request),
-                cls="space-x-2",
+                DivRAligned(
+                    theme_switcher(),
+                    avatar_dropdown(request),
+                    cls="space-x-2",
+                ),
+                # cls="hidden lg:block"
             ),
-            # cls="hidden lg:block"
-        ),
-        # Reduce padding on mobile
-        cls="sticky top-0 border-b border-border px-2 lg:px-4 z-100 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-    ))
+            # Reduce padding on mobile
+        )
+    )
 
 
 
