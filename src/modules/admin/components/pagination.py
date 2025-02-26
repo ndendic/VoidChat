@@ -1,6 +1,6 @@
 from typing import Optional
 from fasthtml.common import *
-from monsterui.franken import *
+from monsterui.all import *
 
 
 class Pagination:

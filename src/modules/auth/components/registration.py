@@ -1,6 +1,6 @@
 from fasthtml.common import *
 from fasthtml.svg import *
-from monsterui.franken import *
+from monsterui.all import *
 from fasthtml.svg import *
 from config import Settings
 config = Settings()

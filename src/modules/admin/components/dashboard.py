@@ -4,8 +4,8 @@ from fasthtml.common import *
 from fasthtml.core import APIRouter
 from fasthtml.svg import *
 from monsterui import *
-from monsterui.franken import *
-from monsterui.franken import Grid as Grd
+from monsterui.all import *
+from monsterui.all import Grid as Grd
 
 def InfoCard(title, value, change):
     return Div(Card(Div(H3(value), P(change, cls=(TextT.muted, TextT.sm))), header=H4(title)))

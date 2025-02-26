@@ -1,7 +1,7 @@
 from fasthtml.common import *
 from fasthtml.core import APIRouter
 from monsterui import *
-from monsterui.franken import *
+from monsterui.all import *
 from config import Settings
 from modules.shared.templates import page_template
 

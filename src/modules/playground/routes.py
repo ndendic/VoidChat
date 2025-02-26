@@ -1,10 +1,11 @@
 from sre_parse import parse_template
 from fasthtml.common import *
 from fasthtml.core import APIRouter
-from monsterui.franken import *
+from monsterui.all import *
 from .components.card import CardShowcase
 from modules.shared.templates import app_template
-from datetime import datetime
+from .components.uiv_button import UivButton
+
 rt = APIRouter()
 
 @rt('/playground')
@@ -19,7 +20,10 @@ def get(request):
                     CardShowcase(),
                     cls="py-10"
                 ),
-                cls="space-y-4"
+                Section(
+                    UivButton("Click me"),
+                    cls="space-y-4"
+                ),
             ),
             cls="py-10"
         )

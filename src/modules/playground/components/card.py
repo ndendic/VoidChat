@@ -1,5 +1,5 @@
 from fasthtml.common import *
-from monsterui.franken import *
+from monsterui.all import *
 
 def ModernCard(
     title=None,

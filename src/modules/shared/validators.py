@@ -1,6 +1,6 @@
 import re
 from fasthtml.common import *
-from monsterui.franken import *
+from monsterui.all import *
 import json
 
 def validate_email(email):

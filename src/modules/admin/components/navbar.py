@@ -2,7 +2,7 @@ import json
 
 from fasthtml.common import *
 from modules.shared.components.theme import theme_switcher
-from monsterui.franken import *
+from monsterui.all import *
 from modules.auth.models import User
 
 from config import Settings

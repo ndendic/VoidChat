@@ -1,6 +1,6 @@
 from fasthtml.common import *
 from config import Settings
-from monsterui.franken import *
+from monsterui.all import *
 from modules.shared.components.theme import theme_switcher
 config = Settings()
 

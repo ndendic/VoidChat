@@ -1,7 +1,7 @@
 import json
 
 from fasthtml.common import *
-from monsterui.franken import *
+from monsterui.all import *
 
 from modules import *
 from modules.chat.models import Chat

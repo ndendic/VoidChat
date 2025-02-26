@@ -1,6 +1,6 @@
 from fasthtml.components import Uk_theme_switcher
 from fasthtml.common import *
-from monsterui.franken import *
+from monsterui.all import *
 
 
 def theme_switcher():

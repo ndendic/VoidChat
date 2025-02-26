@@ -5,7 +5,7 @@ from fasthtml.core import APIRouter
 from fasthtml.svg import *
 from monsterui import *
 from monsterui.all import *
-from monsterui.franken import Grid as Grd
+from monsterui.all import Grid as Grd
 
 from modules.shared.models import BaseTable
 from modules.shared.templates import app_page, app_template, is_htmx
